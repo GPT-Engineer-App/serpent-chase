@@ -9,25 +9,47 @@ const Index = () => {
   const [snake, setSnake] = useState([{ x: 8, y: 8 }]); // Initial position of the snake
   const [food, setFood] = useState({ x: 5, y: 5 }); // Initial position of the food
 
+  const moveSnake = (direction) => {
+    setSnake((previousSnake) => {
+      let newHead = { ...previousSnake[0] };
+      if (direction === "ArrowUp") newHead.y -= 1;
+      if (direction === "ArrowDown") newHead.y += 1;
+      if (direction === "ArrowLeft") newHead.x -= 1;
+      if (direction === "ArrowRight") newHead.x += 1;
+
+      if (newHead.x < 0 || newHead.x >= gridSize || newHead.y < 0 || newHead.y >= gridSize) {
+        toast({
+          title: "Game over!",
+          status: "error",
+          duration: 2000,
+          isClosable: true,
+        });
+        return [{ x: 8, y: 8 }];
+      }
+
+      if (newHead.x === food.x && newHead.y === food.y) {
+        generateNewFood();
+        return [newHead, ...previousSnake];
+      }
+
+      const newSnake = previousSnake.slice();
+      newSnake.unshift(newHead);
+      newSnake.pop();
+      return newSnake;
+    });
+  };
+
   useEffect(() => {
-    // This function would contain the logic to move the snake and check for collisions
     const handleKeyDown = (event) => {
-      toast({
-        title: `Key pressed: ${event.key}`,
-        status: "info",
-        duration: 900,
-        isClosable: true,
-      });
-      // Update snake position based on key pressed
-      // setSnake(newSnakePosition)
+      if (event.key.startsWith("Arrow")) {
+        moveSnake(event.key);
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
 
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [snake]);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [snake, toast]);
 
   // This function would need to calculate the new food position when it is eaten
   const generateNewFood = () => {
